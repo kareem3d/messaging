@@ -1,13 +1,10 @@
 <?php namespace Kareem3d\Messaging;
 
+use Illuminate\Support\Facades\App;
 use Kareem3d\Eloquent\Model;
+use Kareem3d\Membership\User;
 
 class Message extends Model {
-
-    /**
-     * @var array
-     */
-    protected $extensions = array('Seen');
 
     /**
      * The database table used by the model.
@@ -67,5 +64,39 @@ class Message extends Model {
     public function getBody()
     {
         return $this->body;
+    }
+
+    /**
+     * @return User
+     */
+    public function getFromUser()
+    {
+        return App::make('Kareem3d\Membership\User')->getByCreation($this)->first();
+    }
+
+    /**
+     * @return User
+     */
+    public function getToUser()
+    {
+        return App::make('Kareem3d\Membership\User')->getByRecipient($this)->first();
+    }
+
+    /**
+     * @param User $user
+     * @return \Illuminate\Support\Collection
+     */
+    public static function inbox( User $user )
+    {
+        return $user->getRecipients(static::getClass());
+    }
+
+    /**
+     * @param User $user
+     * @return \Illuminate\Support\Collection
+     */
+    public static function sent( User $user )
+    {
+        return $user->getCreations(static::getClass());
     }
 }
