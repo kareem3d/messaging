@@ -51,6 +51,22 @@ class Message extends Model {
     }
 
     /**
+     * @param User $user
+     */
+    public function createdBy( User $user )
+    {
+        $user->creates($this, array('type' => static::ACTIVE));
+    }
+
+    /**
+     * @param User $user
+     */
+    public function receivedBy( User $user )
+    {
+        $user->receives($this, array('type' => static::ACTIVE));
+    }
+
+    /**
      * @return User
      */
     public function getFromUser()
