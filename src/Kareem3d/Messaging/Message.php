@@ -1,10 +1,15 @@
 <?php namespace Kareem3d\Messaging;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Kareem3d\Eloquent\Model;
 use Kareem3d\Membership\User;
 
 class Message extends Model {
+
+    const ACTIVE = 0;
+    const TRASH = 1;
+    const DELETED = 2;
 
     /**
      * The database table used by the model.
@@ -14,13 +19,6 @@ class Message extends Model {
     protected $table = 'messages';
 
     /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
-    protected $hidden = array();
-
-    /**
      * The attributes that can't be mass assigned
      *
      * @var array
@@ -28,26 +26,12 @@ class Message extends Model {
     protected $guarded = array('id');
 
     /**
-     * Whether or not to softDelete
-     *
-     * @var bool
-     */
-    protected $softDelete = false;
-
-    /**
      * Validations rules
      *
      * @var array
      */
     protected $rules = array(
-    );
-
-    /**
-     * For factoryMuff package to be able to fill attributes.
-     *
-     * @var array
-     */
-    public static $factory = array(
+        'type' => 'required|in:0,1,2'
     );
 
     /**
@@ -88,7 +72,9 @@ class Message extends Model {
      */
     public static function inbox( User $user )
     {
-        return $user->getRecipients(static::getClass());
+        return $user->getRecipients(static::getClass(), array(
+            'type' => static::ACTIVE
+        ));
     }
 
     /**
@@ -97,6 +83,53 @@ class Message extends Model {
      */
     public static function sent( User $user )
     {
-        return $user->getCreations(static::getClass());
+        return $user->getCreations(static::getClass(), array(
+            'type' => static::ACTIVE
+        ));
+    }
+
+    /**
+     * @param User $user
+     * @return Collection
+     */
+    public static function trash( User $user )
+    {
+        return $user->getCreations(static::getClass(), array(
+            'type' => static::TRASH
+        ))->merge($user->getRecipients(static::getClass(), array(
+            'type' => static::TRASH
+        )));
+    }
+
+    /**
+     * @param User $user
+     */
+    public function moveToTrash( User $user )
+    {
+        $this->moveTo($user, static::TRASH);
+    }
+
+    /**
+     * @param User $user
+     */
+    public function moveToDeleted( User $user )
+    {
+        $this->moveTo($user, static::DELETED);
+    }
+
+    /**
+     * @param User $user
+     * @param $type
+     */
+    public function moveTo( User $user, $type )
+    {
+        if($user->hasReceived($this))
+        {
+            $user->setRecipientExtra($this, compact('type'));
+        }
+        elseif($user->hasCreated($this))
+        {
+            $user->setCreationExtra($this, compact('type'));
+        }
     }
 }
