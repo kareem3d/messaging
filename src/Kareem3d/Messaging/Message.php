@@ -16,14 +16,7 @@ class Message extends Model {
      *
      * @var string
      */
-    protected $table = 'messages';
-
-    /**
-     * The attributes that can't be mass assigned
-     *
-     * @var array
-     */
-    protected $guarded = array('id');
+    protected $table = 'ka_messages';
 
     /**
      * Validations rules
@@ -33,22 +26,6 @@ class Message extends Model {
     protected $rules = array(
         'type' => 'required|in:0,1,2'
     );
-
-    /**
-     * @return string
-     */
-    public function getSubject()
-    {
-        return $this->subject;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBody()
-    {
-        return $this->body;
-    }
 
     /**
      * @param User $user
@@ -80,6 +57,19 @@ class Message extends Model {
     public function getToUser()
     {
         return App::make('Kareem3d\Membership\User')->getByRecipient($this)->first();
+    }
+
+    /**
+     * Get collection of messages in the inbox and not seen.
+     *
+     * @param \Kareem3d\Membership\User $user
+     * @return \Illuminate\Support\Collection
+     */
+    public static function notSeenInbox( User $user )
+    {
+        return $user->getNotSeenRecipients(static::getClass(), array(
+            'type' => static::ACTIVE
+        ));
     }
 
     /**

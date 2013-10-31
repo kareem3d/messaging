@@ -12,7 +12,7 @@ class CreateMessagesTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('messages', function(Blueprint $table)
+		Schema::create('ka_messages', function(Blueprint $table)
 		{
 			$table->increments('id');
 
@@ -30,7 +30,7 @@ class CreateMessagesTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('messages');
+		Schema::drop('ka_messages');
 	}
 
 }
